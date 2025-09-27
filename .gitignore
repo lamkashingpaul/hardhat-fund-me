@@ -18,3 +18,11 @@
 
 # Hardhat coverage reports
 /coverage
+
+# VSCode settings
+.vscode/*
+!.vscode/extensions.json
+
+# Environment files
+.env*
+!.env.example
