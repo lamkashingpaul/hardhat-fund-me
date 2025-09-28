@@ -6,7 +6,12 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/artifacts", "**/cache"]
+    "includes": [
+      "**",
+      "!!**/artifacts",
+      "!!**/cache",
+      "!!**/ignition/deployments"
+    ]
   },
   "formatter": {
     "enabled": true,
