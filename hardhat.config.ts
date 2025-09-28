@@ -1,10 +1,15 @@
 import "dotenv/config";
+import HardhatIgnitionEthersPlugin from "@nomicfoundation/hardhat-ignition-ethers";
 import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import { configVariable, defineConfig } from "hardhat/config";
 
 export default defineConfig({
-  plugins: [hardhatToolboxMochaEthersPlugin, hardhatVerify],
+  plugins: [
+    hardhatToolboxMochaEthersPlugin,
+    hardhatVerify,
+    HardhatIgnitionEthersPlugin,
+  ],
   solidity: {
     profiles: {
       default: {
