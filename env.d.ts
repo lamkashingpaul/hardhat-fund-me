@@ -7,6 +7,7 @@ declare global {
       ETHERSCAN_API_KEY: string;
       SEPOLIA_RPC_URL: string;
       SEPOLIA_PRIVATE_KEY: string;
+      SEPOLIA_ETHUSD_PRICE_FEED_ADDRESS: string;
     }
   }
 }
