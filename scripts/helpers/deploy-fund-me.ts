@@ -1,6 +1,8 @@
 import type { NetworkConnection } from "hardhat/types/network";
 import FundMeModule from "../../ignition/modules/FundMe.js";
 import { FundMe__factory } from "../../types/ethers-contracts/index.js";
+import { isDevelopmentChain } from "./deploy-helpers.js";
+import { verifyContractAfterDeployment } from "./verify-contract-after-deployment.js";
 
 export const deployFundMe = async (
   connection: NetworkConnection,
@@ -17,12 +19,17 @@ export const deployFundMe = async (
       },
     },
   });
-  console.log(`FundMe deployed at address: ${await fundMe.getAddress()}`);
+  const fundMeAddress = await fundMe.getAddress();
+  console.log(`FundMe deployed at address: ${fundMeAddress}`);
 
-  const typedFundMe = FundMe__factory.connect(
-    await fundMe.getAddress(),
-    signer,
-  );
+  if (!isDevelopmentChain(networkName)) {
+    await verifyContractAfterDeployment({
+      address: fundMeAddress,
+      constructorArgs: [priceFeedAddress],
+    });
+  }
+
+  const typedFundMe = FundMe__factory.connect(fundMeAddress, signer);
 
   return typedFundMe;
 };
