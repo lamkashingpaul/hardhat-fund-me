@@ -238,6 +238,41 @@ Verifying contract on Etherscan...
 Contract verified successfully!
 ```
 
+#### ⚠️ Important: Script Deployments vs Ignition CLI
+
+When deploying with scripts (`pnpm hardhat run scripts/deploy-fund-me.ts`), the `--reset` flag is **NOT available**.
+
+**Key Differences:**
+
+| Feature             | Ignition CLI            | Script Deployment       |
+| ------------------- | ----------------------- | ----------------------- |
+| Reset flag          | `--reset` available     | ❌ Not available        |
+| Deployment tracking | Automatic               | Automatic               |
+| Redeployment        | Smart (skips if exists) | Smart (skips if exists) |
+
+**To Reset Script Deployments:**
+
+If you need to redeploy from scratch when using scripts, you must manually delete the deployment folder:
+
+```bash
+# Windows (PowerShell)
+Remove-Item -Recurse -Force ignition/deployments/chain-31337  # localhost
+Remove-Item -Recurse -Force ignition/deployments/chain-11155111  # sepolia
+
+# Linux/macOS
+rm -rf ignition/deployments/chain-31337  # localhost
+rm -rf ignition/deployments/chain-11155111  # sepolia
+```
+
+**Why This Matters:**
+
+- Ignition tracks deployments to avoid duplicate deployments
+- Both CLI and scripts use the same deployment artifacts in `ignition/deployments/`
+- The `--reset` flag only works with `pnpm hardhat ignition deploy` commands
+- Scripts inherit Ignition's tracking but don't support the reset parameter
+
+**Best Practice:** Only delete deployment folders when you intentionally want to redeploy everything from scratch.
+
 #### Understanding the Script Code Flow
 
 **1. Main Entry Point** ([deploy-fund-me.ts](scripts/deploy-fund-me.ts))
@@ -258,7 +293,7 @@ const main = async () => {
 
 ```typescript
 export const evaluateEthUsdPriceFeedAddress = async (
-  connection: NetworkConnection
+  connection: NetworkConnection,
 ): Promise<string> => {
   const { networkName } = connection;
 
@@ -288,7 +323,7 @@ export const evaluateEthUsdPriceFeedAddress = async (
 
 ```typescript
 export const deployMyMockV3Aggregator = async (
-  connection: NetworkConnection
+  connection: NetworkConnection,
 ) => {
   const { networkName, ignition, ethers } = connection;
   const [signer] = await ethers.getSigners();
@@ -297,18 +332,18 @@ export const deployMyMockV3Aggregator = async (
   console.log(`Deploying MyMockV3Aggregator to ${networkName}...`);
 
   const { myMockV3Aggregator } = await ignition.deploy(
-    MyMockV3AggregatorModule
+    MyMockV3AggregatorModule,
   );
 
   // Dynamic address retrieval and logging
   console.log(
-    `MyMockV3Aggregator deployed at: ${await myMockV3Aggregator.getAddress()}`
+    `MyMockV3Aggregator deployed at: ${await myMockV3Aggregator.getAddress()}`,
   );
 
   // Type-safe contract instance creation
   const typedMyMockV3Aggregator = MyMockV3Aggregator__factory.connect(
     await myMockV3Aggregator.getAddress(),
-    signer
+    signer,
   );
 
   return typedMyMockV3Aggregator;
@@ -327,7 +362,7 @@ export const deployMyMockV3Aggregator = async (
 ```typescript
 export const deployFundMe = async (
   connection: NetworkConnection,
-  priceFeedAddress: string
+  priceFeedAddress: string,
 ) => {
   const { networkName, ignition, ethers } = connection;
   const [signer] = await ethers.getSigners();
@@ -468,7 +503,6 @@ pnpm hardhat test mocha     # Run TypeScript/mocha tests
 After deployment, artifacts are stored in:
 
 - **Ignition deployments**: `ignition/deployments/chain-{chainId}/`
-
   - `deployed_addresses.json`: Contract addresses
   - `journal.jsonl`: Deployment history
   - `artifacts/`: Contract ABIs and metadata
@@ -484,8 +518,11 @@ After deployment, artifacts are stored in:
 # Terminal 1: Start node
 pnpm hardhat node
 
-# Terminal 2: Deploy
-pnpm hardhat ignition deploy ignition/modules/FundMe.ts --network localhost
+# Terminal 2: Deploy using Ignition CLI (supports --reset)
+pnpm hardhat ignition deploy ignition/modules/FundMe.ts --network localhost --parameters '{"FundMe":{"priceFeedAddress":"0x5FbDB2315678afecb367f032d93F642f64180aa3"}}'
+
+# OR deploy using scripts (no --reset flag available)
+pnpm hardhat run scripts/deploy-fund-me.ts --network localhost
 ```
 
 ### Scenario 2: Deploy to Testnet with Verification
@@ -497,9 +534,22 @@ pnpm hardhat run scripts/deploy-fund-me.ts --network sepolia
 
 ### Scenario 3: Redeploy to Existing Local Node
 
+**Using Ignition CLI:**
+
 ```bash
 # Use --reset flag to start fresh
-pnpm hardhat ignition deploy ignition/modules/FundMe.ts --network localhost --reset
+pnpm hardhat ignition deploy ignition/modules/FundMe.ts --network localhost --reset --parameters '{"FundMe":{"priceFeedAddress":"0x5FbDB2315678afecb367f032d93F642f64180aa3"}}'
+```
+
+**Using Scripts:**
+
+```bash
+# Scripts don't support --reset, manually delete deployment folder first
+Remove-Item -Recurse -Force ignition/deployments/chain-31337  # Windows
+# rm -rf ignition/deployments/chain-31337  # Linux/macOS
+
+# Then run the script
+pnpm hardhat run scripts/deploy-fund-me.ts --network localhost
 ```
 
 ## 🔧 Troubleshooting

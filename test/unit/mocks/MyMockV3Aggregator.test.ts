@@ -1,38 +1,30 @@
 import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/types";
 import { expect } from "chai";
 import hre from "hardhat";
-import MyMockV3AggregatorModule from "../../ignition/modules/mocks/MyMockV3Aggregator.js";
+import { deployMyMockV3AggregatorModuleFixture } from "../../../scripts/fixtures/deploy-my-mock-v3-aggregator-module-fixture.js";
 import {
   type MyMockV3Aggregator,
   MyMockV3Aggregator__factory,
-} from "../../types/ethers-contracts/index.js";
+} from "../../../types/ethers-contracts/index.js";
 
 describe("MyMockV3Aggregator", () => {
   const DECIMALS = 8n;
-  const INITIAL_ANSWER = 3000n * 10n ** DECIMALS;
+  const INITIAL_ANSWER = 2000n * 10n ** DECIMALS;
 
   let signer: HardhatEthersSigner;
   let typedAggregator: MyMockV3Aggregator;
 
   beforeEach(async () => {
     const connection = await hre.network.connect();
-    [signer] = await connection.ethers.getSigners();
-
-    const { myMockV3Aggregator } = await connection.ignition.deploy(
-      MyMockV3AggregatorModule,
-      {
-        defaultSender: signer.address,
-        parameters: {
-          MyMockV3Aggregator: {
-            decimals: DECIMALS,
-            initialAnswer: INITIAL_ANSWER,
-          },
-        },
-      },
+    const { networkHelpers, ethers } = connection;
+    const { myMockV3Aggregator } = await networkHelpers.loadFixture(
+      deployMyMockV3AggregatorModuleFixture,
     );
+    const myMockV3AggregatorAddress = await myMockV3Aggregator.getAddress();
 
+    [signer] = await ethers.getSigners();
     typedAggregator = MyMockV3Aggregator__factory.connect(
-      await myMockV3Aggregator.getAddress(),
+      myMockV3AggregatorAddress,
       signer,
     );
   });
