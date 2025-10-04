@@ -12,12 +12,6 @@ library PriceConverter {
         return uint256(price) * 10 ** (18 - decimals);
     }
 
-    function getVersion(
-        AggregatorV3Interface priceFeed
-    ) internal view returns (uint256) {
-        return priceFeed.version();
-    }
-
     function getConversionRate(
         uint256 ethAmount,
         AggregatorV3Interface priceFeed
