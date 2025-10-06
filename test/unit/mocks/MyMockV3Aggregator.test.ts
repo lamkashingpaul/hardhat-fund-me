@@ -8,6 +8,14 @@ import {
 } from "../../../types/ethers-contracts/index.js";
 
 describe("MyMockV3Aggregator", () => {
+  before(async function () {
+    const { networkConfig } = await hre.network.connect();
+    const chainId = networkConfig.chainId;
+    if (chainId === undefined || ![31337, 1337].includes(chainId)) {
+      this.skip();
+    }
+  });
+
   const DECIMALS = 8n;
   const INITIAL_ANSWER = 2000n * 10n ** DECIMALS;
 

@@ -1,4 +1,3 @@
-import "dotenv/config";
 import type { NetworkConnection } from "hardhat/types/network";
 import { deployMyMockV3Aggregator } from "./deploy-my-mock-v3-aggregator.js";
 import { isDevelopmentChain } from "./deployment-helpers.js";

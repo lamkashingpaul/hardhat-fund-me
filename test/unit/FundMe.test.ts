@@ -4,6 +4,7 @@ import hre from "hardhat";
 import type { NetworkConnection } from "hardhat/types/network";
 import { deployMyMockV3AggregatorModuleFixture } from "../../scripts/fixtures/deploy-my-mock-v3-aggregator-module-fixture.js";
 import { deployFundMe } from "../../scripts/helpers/deploy-fund-me.js";
+import { isDevelopmentChain } from "../../scripts/helpers/deployment-helpers.js";
 import {
   type FundMe,
   type MyMockV3Aggregator,
@@ -11,6 +12,14 @@ import {
 } from "../../types/ethers-contracts/index.js";
 
 describe("FundMe", () => {
+  before(async function () {
+    const { networkConfig } = await hre.network.connect();
+    const chainId = networkConfig.chainId;
+    if (chainId === undefined || !isDevelopmentChain(chainId)) {
+      this.skip();
+    }
+  });
+
   let connection: NetworkConnection;
   let signer: HardhatEthersSigner;
   let typedAggregator: MyMockV3Aggregator;
