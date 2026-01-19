@@ -1,8 +1,12 @@
 {
   "name": "hardhat-fund-me",
+  "author": "Paul Lam",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "coverage": "pnpm hardhat test --coverage",
+    "test": "pnpm hardhat test",
+    "test:staging": "pnpm hardhat test --network sepolia",
     "ci": "biome ci",
     "lint": "biome check && solhint contracts/**/*.sol",
     "format": "biome check --write && solhint --fix --noPrompt contracts/**/*.sol"

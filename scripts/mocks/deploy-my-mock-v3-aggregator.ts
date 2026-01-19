@@ -1,7 +1,9 @@
+import hre from "hardhat";
 import { deployMyMockV3Aggregator } from "../helpers/deploy-my-mock-v3-aggregator.js";
 
 const main = async () => {
-  await deployMyMockV3Aggregator();
+  const connection = await hre.network.connect();
+  await deployMyMockV3Aggregator(connection);
 };
 
 main().catch(console.error);

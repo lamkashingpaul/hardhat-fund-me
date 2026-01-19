@@ -596,6 +596,191 @@ pnpm hardhat run scripts/deploy-fund-me.ts --network localhost
 
 - `priceFeedAddress`: Chainlink AggregatorV3Interface address
 
+## 💰 Interacting with Deployed Contracts
+
+Once deployed, you can interact with the FundMe contract using the provided interaction scripts.
+
+### Funding the Contract
+
+The [fund.ts](scripts/fund.ts) script allows you to send ETH to the deployed FundMe contract:
+
+```bash
+pnpm hardhat run scripts/fund.ts --network localhost
+# or
+pnpm hardhat run scripts/fund.ts --network sepolia
+```
+
+**What the script does:**
+
+1. Connects to the specified network
+2. Retrieves or deploys the FundMe contract
+3. Sends 0.1 ETH to the contract via the `fund()` function
+4. Waits for transaction confirmation
+5. Logs success message
+
+**Code Implementation:**
+
+```typescript
+const main = async () => {
+  const connection = await hre.network.connect();
+  const [signer] = await connection.ethers.getSigners();
+  const priceFeedAddress = await evaluateEthUsdPriceFeedAddress(connection);
+  const typedFundMe = await deployFundMe(connection, priceFeedAddress);
+
+  const connectedFundMe = typedFundMe.connect(signer);
+  const transactionResponse = await connectedFundMe.fund({
+    value: ethers.parseEther("0.1"), // Send 0.1 ETH
+  });
+  await transactionResponse.wait(1); // Wait for 1 confirmation
+  console.log("Funded FundMe contract!");
+};
+```
+
+**Expected Output:**
+
+```
+Funded FundMe contract!
+```
+
+**Key Features:**
+
+- ✅ Reuses deployment infrastructure (`deployFundMe` helper)
+- ✅ Works on any network (localhost, Sepolia, etc.)
+- ✅ Type-safe contract interaction
+- ✅ Transaction confirmation handling
+
+### Withdrawing from the Contract
+
+The [withdraw.ts](scripts/withdraw.ts) script allows the contract owner to withdraw all funds:
+
+```bash
+pnpm hardhat run scripts/withdraw.ts --network localhost
+# or
+pnpm hardhat run scripts/withdraw.ts --network sepolia
+```
+
+**What the script does:**
+
+1. Connects to the specified network
+2. Retrieves or deploys the FundMe contract
+3. Calls the `withdraw()` function (owner only)
+4. Waits for transaction confirmation
+5. Logs success message
+
+**Code Implementation:**
+
+```typescript
+const main = async () => {
+  const connection = await hre.network.connect();
+  const [signer] = await connection.ethers.getSigners();
+  const priceFeedAddress = await evaluateEthUsdPriceFeedAddress(connection);
+  const typedFundMe = await deployFundMe(connection, priceFeedAddress);
+
+  const connectedFundMe = typedFundMe.connect(signer);
+  const transactionResponse = await connectedFundMe.withdraw();
+  await transactionResponse.wait(1); // Wait for 1 confirmation
+  console.log("Withdrew from FundMe contract!");
+};
+```
+
+**Expected Output:**
+
+```
+Withdrew from FundMe contract!
+```
+
+**Important Notes:**
+
+- ⚠️ Only the contract owner (deployer) can withdraw funds
+- ⚠️ Attempting to withdraw as a non-owner will revert with `NotOwner()` error
+- ✅ Withdraws all ETH from the contract
+- ✅ Resets all funder balances to zero
+
+### Script Architecture Pattern
+
+Both interaction scripts follow a consistent pattern:
+
+```
+1. Connect to network
+   ↓
+2. Get signer (wallet)
+   ↓
+3. Resolve price feed address (network-aware)
+   ↓
+4. Deploy or retrieve FundMe contract
+   ↓
+5. Connect signer to contract (for transactions)
+   ↓
+6. Execute contract function
+   ↓
+7. Wait for confirmation
+   ↓
+8. Log result
+```
+
+**Advantages of This Pattern:**
+
+- **Reusability**: Leverages existing deployment helpers
+- **Network Agnostic**: Works on any configured network
+- **Type Safety**: Full TypeScript type checking
+- **Error Handling**: Catches and logs errors properly
+- **Transaction Safety**: Waits for confirmations
+
+### Complete Workflow Example
+
+Here's a complete workflow demonstrating the full lifecycle:
+
+```bash
+# Step 1: Start local network (separate terminal)
+pnpm hardhat node
+
+# Step 2: Deploy FundMe contract
+pnpm hardhat run scripts/deploy-fund-me.ts --network localhost
+
+# Step 3: Fund the contract with 0.1 ETH
+pnpm hardhat run scripts/fund.ts --network localhost
+
+# Step 4: Withdraw all funds (as owner)
+pnpm hardhat run scripts/withdraw.ts --network localhost
+```
+
+**Expected Complete Output:**
+
+```
+# Deploy
+Deploying MyMockV3Aggregator to localhost...
+MyMockV3Aggregator deployed at address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Deploying FundMe to localhost...
+FundMe deployed at address: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+
+# Fund
+Funded FundMe contract!
+
+# Withdraw
+Withdrew from FundMe contract!
+```
+
+### Testing on Sepolia
+
+The same scripts work on Sepolia testnet:
+
+```bash
+# Deploy
+pnpm hardhat run scripts/deploy-fund-me.ts --network sepolia
+
+# Fund
+pnpm hardhat run scripts/fund.ts --network sepolia
+
+# Withdraw
+pnpm hardhat run scripts/withdraw.ts --network sepolia
+```
+
+**Prerequisites for Sepolia:**
+
+- ✅ `.env` configured with `SEPOLIA_RPC_URL` and `SEPOLIA_PRIVATE_KEY`
+- ✅ Account has sufficient Sepolia ETH (for gas + funding amount)
+- ✅ Chainlink price feed address configured
+
 ## 🤝 Contributing
 
 This project uses:

@@ -30,6 +30,10 @@ describe("FundMe", async () => {
   });
 
   it("allows people to fund and withdraw", async () => {
+    const ownerAddress = await typedFundMe.getOwner();
+    const signerAddress = await signer.getAddress();
+    expect(ownerAddress).to.equal(signerAddress);
+
     await typedFundMe.fund({ value: sendValue });
     await typedFundMe.withdraw();
 

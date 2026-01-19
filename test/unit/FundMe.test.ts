@@ -156,6 +156,11 @@ describe("FundMe", () => {
       const accounts = await ethers.getSigners();
       const attacker = accounts[1];
       const attackerConnectedFundMe = typedFundMe.connect(attacker);
+
+      const ownerAddress = await typedFundMe.getOwner();
+      const attackerAddress = await attacker.getAddress();
+      expect(attackerAddress).to.not.equal(ownerAddress);
+
       await expect(
         attackerConnectedFundMe.withdraw(),
       ).to.be.revertedWithCustomError(typedFundMe, "FundMe__NotOwner");
